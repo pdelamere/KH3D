@@ -325,12 +325,12 @@ module part_init
 !                  vp(l,1) = -0.0*(exp(-(xp(l,3)-qz(nz/2))**2/(10.*delz)**2)
 !               x        *exp(-(xp(l,1)-qx(nx/2))**2/(10.*dx)**2))+vx
                   vp(l,1) =  va_f*va*(tanh((qz(k)-qz(nz/2))/(Lo))) + vx + &
-                       -0.0*va*cosh((qz(nz/2)-qz(k))/Lo)**(-2)*tanh((qz(nz/2)-qz(k))/Lo)*cos(qx(i)*PI/(0.5*nx*dx))
+                       0.2*va*cosh((qz(nz/2)-qz(k))/(2*Lo))**(-2)*tanh((qz(nz/2)-qz(k))/(2*Lo))*cos(qx(i)*4*PI/(nx*dx))*cos(qy(j)*2*PI/(ny*dy))
 !vx!+57.0*exp(-(xp(l,3)-qz(nz/2))**2/(5*dz_grid(nz/2))**2) !Gaussian velocity perturbation (20)
                   vp(l,2) = vy! +57.0*(1+0.5*cos(8*pi*qx(ii)/qx(nx-1)))* &
                        !(1+0.5*cos(8*pi*qz(kk)/qz(nz)))* &
                        !exp(-((qx(ii)-qx(nx/2))**2 + (qz(kk)-qz(nz/2))**2)/(10*dx)**2)
-                  vp(l,3) = vz !+0.1*0.5*va*cosh((qz(nz/2)-qz(k))/Lo)**(-2)*sin(PI*qx(i)/(20*dx))
+                  vp(l,3) = vz - 0.2*va*cosh((qz(nz/2)-qz(k))/(2*Lo))**(-2)*sin(4*PI*qx(i)/(nx*dx))*cos(qy(j)*2*PI/(ny*dy))
                   
                   do m=1,3
                         vp1(l,m) = vp(l,m)
@@ -377,10 +377,10 @@ module part_init
         
 
         N_1 = Ni_tot
-        N_2 = nint(1.5*Ni_tot)
-!        Ni_tot = N_2
-        N_3 = nint(2.0*Ni_tot)
-        Ni_tot = N_3
+        N_2 = nint(2.0*Ni_tot)
+        Ni_tot = N_2
+!        N_3 = nint(2.0*Ni_tot)
+!        Ni_tot = N_3
 
         N1 = real(N_1)
         N2 = real(N_2) - real(N_1)
@@ -403,7 +403,7 @@ module part_init
         m3 = 1.1
         
 !!        vth1 = sqrt((m2/m1)*(N2/N1)*(beta1/beta2)*vth2*vth2 + (m3/m1)*(N3/N1)*(beta1/beta3)*vth3*vth3)
-        vth2 = sqrt((m1/m2)*(N1/N2)*(beta2/beta1)*vth1*vth1 - (m3/m2)*(N3/N2)*(beta2/beta3)*vth3*vth3)
+!        vth2 = sqrt((m1/m2)*(N1/N2)*(beta2/beta1)*vth1*vth1 - (m3/m2)*(N3/N2)*(beta2/beta3)*vth3*vth3)
 !        vth3 = sqrt(-(m2/m3)*(N2/N3)*(beta3/beta2)*vth2*vth2 + (m1/m3)*(N1/N3)*(beta3/beta1)*vth1*vth1)
 
         rL1 = m1*mion*vth1/(q*B0_init)  !gryoradius
@@ -418,7 +418,7 @@ module part_init
 
         call load_Maxwellian_KH(vth1,1,N_1,m1*mion,1/m1,beta1,rL1,1)
         call load_Maxwellian_KH(vth2,N_1+1,N_2,m2*mion,1/m2,beta2,rL2,2)
-        call load_Maxwellian_KH(vth3,N_2+1,N_3,m3*mion,1/m3,beta3,rL3,2)
+!        call load_Maxwellian_KH(vth3,N_2+1,N_3,m3*mion,1/m3,beta3,rL3,2)
         
       end subroutine init_KH_part
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

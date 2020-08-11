@@ -1952,6 +1952,117 @@ module gutsp
 
             
       end subroutine get_pindex
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!            
+      subroutine get_test_part()
+            use dimensions
+            use grid_interp
+            use var_arrays, only: Ep,aj,up,btc,Ni_tot,ijkp,mrat,wght,grav, gradP, xp, vp,np
+            use inputs, only: mion,dx,Lo,omega_p,dy,vsw
+            use grid, only: qz,qy
+            implicit none
+            real:: ajc(nx,ny,nz,3), &     !aj at cell center
+!                   upc(nx,ny,nz,3), &   !up at cell center
+                   gravc(nx,ny,nz), & !gravity at cell center
+                   aa(3),bb(3),cc(3),aj3(3),up3(3),btc3(3), grav3, gradP3(3)    !dummy variables
+            integer:: l,i,j,k,m,ip,jp,kp
+                        
+            call face_to_center(aj,ajc)
+
+            ! grav term
+            call grav_to_center(grav,gravc)
+            
+            do l=1, 1000 !Ni_tot
+                  i=ijkp(l,1)
+                  j=ijkp(l,2)
+                  k=ijkp(l,3)
                   
+                  ip=i+1
+                  jp=j+1
+                  kp=k+1            
+                  
+                  do m=1,3
+                        aj3(m) = ajc(i,j,k,m)*wght(l,1) + ajc(ip,j,k,m)*wght(l,2) &
+                              + ajc(i,j,kp,m)*wght(l,3) + ajc(ip,j,kp,m)*wght(l,4) &
+                              + ajc(i,jp,k,m)*wght(l,5) + ajc(ip,jp,k,m)*wght(l,6) &
+                              + ajc(i,jp,kp,m)*wght(l,7) + ajc(ip,jp,kp,m)*wght(l,8)
+
+                        up3(m) = up(i,j,k,m)*wght(l,1) + up(ip,j,k,m)*wght(l,2) &
+                              + up(i,j,kp,m)*wght(l,3) + up(ip,j,kp,m)*wght(l,4) &
+                              + up(i,jp,k,m)*wght(l,5) + up(ip,jp,k,m)*wght(l,6) &
+                              + up(i,jp,kp,m)*wght(l,7) + up(ip,jp,kp,m)*wght(l,8)
+
+!                        uf3(m) = ufc(i,j,k,m)*wght(l,1) + ufc(ip,j,k,m)*wght(l,2) 
+!                              + ufc(i,j,kp,m)*wght(l,3) + ufc(ip,j,kp,m)*wght(l,4) &
+!                              + ufc(i,jp,k,m)*wght(l,5) + ufc(ip,jp,k,m)*wght(l,6) &
+!                              + ufc(i,jp,kp,m)*wght(l,7) + ufc(ip,jp,kp,m)*wght(l,8)
+
+                        btc3(m) = btc(i,j,k,m)*wght(l,1) & 
+                              + btc(ip,j,k,m)*wght(l,2) &
+                              + btc(i,j,kp,m)*wght(l,3) &
+                              + btc(ip,j,kp,m)*wght(l,4) &
+                              + btc(i,jp,k,m)*wght(l,5) &
+                              + btc(ip,jp,k,m)*wght(l,6) &
+                              + btc(i,jp,kp,m)*wght(l,7) &
+                              + btc(ip,jp,kp,m)*wght(l,8)
+                               
+                               
+                       !electron pressure term
+                       gradP3(m) = gradP(i,j,k,m)*wght(l,1) &
+                               + gradP(ip,j,k,m)*wght(l,2) &
+                               + gradP(i,j,kp,m)*wght(l,3) &
+                               + gradP(ip,j,kp,m)*wght(l,4) &
+                               + gradP(i,jp,k,m)*wght(l,5) &
+                               + gradP(ip,jp,k,m)*wght(l,6) &
+                               + gradP(i,jp,kp,m)*wght(l,7) &
+                               + gradP(ip,jp,kp,m)*wght(l,8) 
+                   
+                  enddo 
+                  do m=1,3 
+                        aa(m) = aj3(m) - up3(m)
+                        bb(m) = btc3(m)
+                  enddo
+                  ! Add in gravity term
+                  grav3 = gravc(i,j,k)*wght(l,1) & 
+                              + gravc(ip,j,k)*wght(l,2) &
+                              + gravc(i,j,kp)*wght(l,3) &
+                              + gravc(ip,j,kp)*wght(l,4) &
+                              + gravc(i,jp,k)*wght(l,5) &
+                              + gravc(ip,jp,k)*wght(l,6) &
+                              + gravc(i,jp,kp)*wght(l,7) &
+                              + gravc(ip,jp,kp)*wght(l,8)
+                  
+                  !Cross product
+                  cc(1) = aa(2)*bb(3) - aa(3)*bb(2)
+                  cc(2) = aa(3)*bb(1) - aa(1)*bb(3)
+                  cc(3) = aa(1)*bb(2) - aa(2)*bb(1)
+                  
+                  
+!                  do m=1,2
+!The line contains the y boundary friction (ion/neutral collsions) for  line tying BC
+                  Ep(l,1) = cc(1) - gradP3(1) !- 0.1*omega_p*&
+                               ! (0.5*(1.0+tanh((xp(l,2)-qy(3.*ny/4.))/(15*dy))) + &
+                               !  0.5*(1.0-tanh((xp(l,2)-qy(1.*ny/4.))/(15*dy))))*(up3(1) - vsw*(tanh((xp(l,3)-qz(nz/2))/(Lo))))
+
+                        Ep(l,2) = cc(2) - gradP3(2)
+
+!                             2.0*exp(-(xp(l,3)-qz(nz))**2/(20*dx)**2)*(vp(l,m) - 0.0*up3(m)) - &
+!                             2.0*exp(-(xp(l,3)-qz(1))**2/(20*dx)**2)*(vp(l,m) - 0.0*up3(m)) !add in electron pressure term
+                        Ep(l,1) = Ep(l,1) * mrat(l)
+                        Ep(l,2) = Ep(l,2) * mrat(l)
+                        !*(1.0-exp(-(xp(l,3)-qz(nz))**2/(20*dx)**2))* &
+                        !     (1.0-exp(-(xp(l,3)-qz(1))**2/(20*dx)**2))
+!                  enddo
+                  Ep(l,3) = cc(3) - gradP3(3)! - &
+!                       2.0*exp(-(xp(l,3)-qz(nz))**2/(20*dx)**2)*(vp(l,3) - 0.0*up3(3)) - &
+!                       2.0*exp(-(xp(l,3)-qz(1))**2/(20*dx)**2)*(vp(l,3) - 0.0*up3(3))  !add in electron pressure term
+                  Ep(l,3) = Ep(l,3) * mrat(l) + grav3*mrat(l)  ! Second term is for gravity
+
+                  write(342) xp(l,:),vp(l,:),Ep(l,:),btc3(:),up3(:),aj3(:),gradP3(:)
+            enddo
+            
+      end subroutine get_test_part
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      
 end module gutsp

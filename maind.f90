@@ -328,7 +328,8 @@ program hybrid
  
             call move_ion_half()       !final ion move to n+1
 
-            write(342) xp(1:3,:)
+
+!            write(342) xp(1:3,:)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !       diagnositc output
@@ -336,6 +337,7 @@ program hybrid
             call MPI_BARRIER(MPI_COMM_WORLD,ierr)
             
             if (my_rank .eq. 0) then
+                  call get_test_part()
                   write(160) m
                   write(160) input_E,input_EeP,Evp,Euf,EB1,EB1x,EB1y,EB1z,EE, &
                         EeP,input_chex,input_bill

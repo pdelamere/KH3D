@@ -143,7 +143,7 @@ module inputs
                   lambda_i = (3e8/sqrt((nf_init/1e9)*q*q/(8.85e-12*mion)))/1e3
                                     
                   dx= lambda_i*dx_frac
-                  dy=4.0*lambda_i*dx_frac           !units in km
+                  dy=1.0*lambda_i*dx_frac           !units in km
                   delz = lambda_i*dx_frac       !dz at release coordinates
                   
                   dt= dt_frac*mion/(q*b0_init)  !main time step
@@ -169,7 +169,7 @@ module inputs
                   vth_max = 3*vth
                   m_top = mion
                   m_bottom = mion
-                  Lo = 1.5*lambda_i           !gradient scale length of boundary
+                  Lo = 2.5*lambda_i           !gradient scale length of boundary
                   
                   nu_init = nu_init_frac*omega_p
                   
