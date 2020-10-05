@@ -113,7 +113,7 @@ class plot_hybrid(Hybrid_read):
         return b_lines,topo
 
     
-dir = '/data/KH3D/run_test_no_delta_u/'
+dir = '/data/KH3D/run_test/'
 h = Hybrid_read(dir)
 
 p = plot_hybrid()

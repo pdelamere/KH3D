@@ -40,7 +40,7 @@ pro plot_3x3,nf,yslc
   
 ;  dir = '/Volumes/Scratch/hybrid/KH3D/run_test/'
   dir = './run_va_0/'
-  dir = '/data/KH3D/run_test_no_delta_u/'
+  dir = '/data/KH3D/run_test/'
   
   nframe=nf
   read_para,dir

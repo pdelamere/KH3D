@@ -325,12 +325,12 @@ module part_init
 !                  vp(l,1) = -0.0*(exp(-(xp(l,3)-qz(nz/2))**2/(10.*delz)**2)
 !               x        *exp(-(xp(l,1)-qx(nx/2))**2/(10.*dx)**2))+vx
                   vp(l,1) =  va_f*va*(tanh((qz(k)-qz(nz/2))/(Lo))) + vx + &
-                       0.2*va*cosh((qz(nz/2)-qz(k))/(2*Lo))**(-2)*tanh((qz(nz/2)-qz(k))/(2*Lo))*cos(qx(i)*4*PI/(nx*dx))*cos(qy(j)*2*PI/(ny*dy))
+                       0.1*va*cosh((qz(nz/2)-qz(k))/(2*Lo))**(-2)*tanh((qz(nz/2)-qz(k))/(2*Lo))*cos(qx(i)*2*PI/(nx*dx))*cos(qy(j)*2*PI/(ny*dy))
 !vx!+57.0*exp(-(xp(l,3)-qz(nz/2))**2/(5*dz_grid(nz/2))**2) !Gaussian velocity perturbation (20)
                   vp(l,2) = vy! +57.0*(1+0.5*cos(8*pi*qx(ii)/qx(nx-1)))* &
                        !(1+0.5*cos(8*pi*qz(kk)/qz(nz)))* &
                        !exp(-((qx(ii)-qx(nx/2))**2 + (qz(kk)-qz(nz/2))**2)/(10*dx)**2)
-                  vp(l,3) = vz - 0.2*va*cosh((qz(nz/2)-qz(k))/(2*Lo))**(-2)*sin(4*PI*qx(i)/(nx*dx))*cos(qy(j)*2*PI/(ny*dy))
+                  vp(l,3) = vz - 0.1*va*cosh((qz(nz/2)-qz(k))/(2*Lo))**(-2)*sin(2*PI*qx(i)/(nx*dx))*cos(qy(j)*2*PI/(ny*dy))
                   
                   do m=1,3
                         vp1(l,m) = vp(l,m)
