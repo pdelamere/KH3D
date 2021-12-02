@@ -113,13 +113,13 @@ class plot_hybrid(Hybrid_read):
         return b_lines,topo
 
     
-dir = '/data/KH3D/run_test/'
+dir = '/data/KH3D/run_heavy/'
 h = Hybrid_read(dir)
 
 p = plot_hybrid()
 #print(p.nx,p.ny,p.nz)
 file = 'c.mixed'
-p.s_animate_xz(file,15,np.int(p.ny/2))
+p.s_animate_xz(file,10,np.int(p.ny/2))
 #file = 'c.up'
 #p.s_animate_vec_xz(file,5,np.int(p.ny/2),0)
 #print(p.di,np.max(p.x))

@@ -31,9 +31,9 @@ class Hybrid_read:
         self.vth_bottom = 0.0
         self.alpha = 0.0
         self.beta = 0.0
-        self.x = 0.0
-        self.y = 0.0
-        self.z = 0.0
+        self.qx = 0.0
+        self.qy = 0.0
+        self.qz = 0.0
         self.va = 0.0
         self.di = 0.0
         
@@ -102,9 +102,9 @@ class Hybrid_read:
         nny = f.read_ints('i4').item()
         nnz = f.read_ints('i4').item()
         #print(nnx,nny,nnz)
-        self.x = f.read_reals('f4')
-        self.y = f.read_reals('f4')
-        self.z = f.read_reals('f4')
+        self.qx = f.read_reals('f4')
+        self.qy = f.read_reals('f4')
+        self.qz = f.read_reals('f4')
     
         f.close()
 
