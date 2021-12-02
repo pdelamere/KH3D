@@ -153,10 +153,11 @@ end
 @get_const
 
 ;dir = './run_va_0.8_beta_1/'
-dir = './run_va_0.8_beta_3/'
+;dir = './run_va_0.8_beta_3/'
+dir ='/data/KH3D/run_heating/'
 
-nfr0 = 18
-nfr1 = 19                        ;number of frames.
+nfr0 = 1
+nfr1 = 15                        ;number of frames.
 nxz = 6   ;fft domain
 
 ;initialize
@@ -164,7 +165,7 @@ read_para,dir
 restore,filename=dir+'para.sav'
 read_coords,dir,x,y,z
 
-beta = 3.0
+beta = 1.0
 Omega_i = q*b0_top/mproton
 wpi = sqrt(q*q*np_top/1e9/(epo*mproton))
 cwpi = 3e8/wpi
@@ -206,8 +207,8 @@ qkaw = 0.
 for j = info.nfr0,info.nfr1 do begin
    qmhd_1 = 0.
    qkaw_1 = 0.
-;   for jj = 1,ny-2,10 do begin
-   jj = ny/2
+   for jj = 1,ny-2,10 do begin
+;   jj = ny/2
       nfrm = j
       print,'nfrm....',nfrm
       c_read_3d_vec_m_32,dir,'c.b1',nfrm,b1
@@ -515,7 +516,7 @@ for j = info.nfr0,info.nfr1 do begin
       qmhd_1 = [qmhd_1,mean(qmhd_arr/1e-15)]
       qkaw_1 = [qkaw_1,mean(qkaw_arr/1e-15)]
       
-;   endfor
+   endfor
    qmhd = [qmhd, mean(qmhd_1(1:*))]
    qkaw = [qkaw, mean(qkaw_1(1:*))]
 ;print,'mean qkaw 1...',qkaw
@@ -533,7 +534,7 @@ p1b = plot(tm*s.Omega_i,qkaw,'2g-s',/overplot,NAME='$q_{KAW}$')
 p1b.sym_filled=1
 p1.ylog=1
 p1.yrange=[0.1,30]
-p1.xrange=[90,250]
+p1.xrange=[50,250]
 p1.title='$\beta$ = 3'
 p1.position=[0.2,0.15,0.95,0.9]
 p1.font_size=18

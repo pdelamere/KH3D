@@ -69,7 +69,7 @@ program hybrid
       mstart_n = 0 !number of times restarted
       write(mstart, '(I1)') mstart_n
       
-      ndiag = 0
+      ndiag = nout-1
       ndiag_part = 0
       prev_Etot = 1.0
 !      nuei = 0.0
@@ -112,7 +112,8 @@ program hybrid
 !      call load_Maxwellian(vth,1,mion,1.0)
       
 
-      call init_KH_part()
+!      call init_KH_part()
+      call init_KH_heavy()
 
 !      Nif = nint(Ni_tot/3.)
 !      Nif2 = nint(Ni_tot*2/3.)

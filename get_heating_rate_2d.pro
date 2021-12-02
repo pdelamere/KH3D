@@ -41,7 +41,7 @@ pro plot_psd,kx,s,psd_arr_sum,psd_k_mhd,psd_k_kaw
   
 ;  wh = where((kx ge s.kp_rhoi))
   wh = where((kx*s.rhoi ge 2*!pi))
-;  print,'wh kaw...',wh
+;  print,'wh kaw...',wh,kx*s.rhoi
   fkx_kaw = poly_fit(alog(kx(wh)),alog(psd_arr_sum(wh)),1)
   psd_k_kaw = [psd_k_kaw,fkx_kaw(1)]
 ;  print,'alpha mhd, kaw...',fkx_mhd(1),fkx_kaw(1)
@@ -87,7 +87,7 @@ pro get_particle_heating,info,s,poft,dEdt_1,p1,tm
   tm = info.dt*info.t0*findgen(n_elements(poft_arr))
   w1=window()
   dEdt_1 = (shift(poft_arr,-1)-shift(poft_arr,1))/(2*info.dt*info.t0)/1e-15
-  p1 = plot(tm(2:*)*s.Omega_i,(dEdt_1(2:*))>0,'2r-D',/current,NAME='q')
+  p1 = plot(tm(2:*)*s.Omega_i,(dEdt_1(2:*))>0,'2r-D',/current,NAME='q',/ylog)
   p1.sym_filled=1
   p1.ytitle='Heating rate density [$10^{-15}$ W/m$^{3}$]'
   p1.xtitle='time ($\Omega_i^{-1}$)'
@@ -102,9 +102,9 @@ w = window()
 @get_const
 
 ;dir = './run_va_0.8_beta_1/'
-dir = './run_va_0.8_beta_3/'
+dir = '/data/KH3D/run_heating/'
 
-nfr = 25   ;number of frames.
+nfr = 20   ;number of frames.
 nxz = 48  ;fft domain
 
 ;initialize
@@ -112,7 +112,7 @@ read_para,dir
 restore,filename=dir+'para.sav'
 read_coords,dir,x,y,z
 
-beta = 3.0
+beta = 1.0
 Omega_i = q*b0_top/mproton
 wpi = sqrt(q*q*np_top/1e9/(epo*mproton))
 cwpi = 3e8/wpi
@@ -128,6 +128,8 @@ dx = x(1)-x(0)
 
 poft = 0.0
 get_particle_heating,info,s,poft,dEdt_1,p1,tm
+
+;stop
 
 barr = fltarr(nx)
 pmhd = 0.0
@@ -239,7 +241,7 @@ for j = 1,nfr do begin
          endfor
          
 ;         wset,1
-         plot_psd,kx,s,psd_arr_sum,psd_k_mhd,psd_k_kaw
+;         plot_psd,kx,s,psd_arr_sum,psd_k_mhd,psd_k_kaw
          
 ;         wset,2
 ;      plot_q,kx,beta,cwpi,pwr_arr_sum,pwr_kaw_arr_sum

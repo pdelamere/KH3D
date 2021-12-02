@@ -253,12 +253,16 @@ module part_init
             integer:: region
             real:: rnd
             integer:: flg
+            real:: v1_xuan,kx,ky
+            
             
             disp = 0 !Displacement of gradient
 !            amp = 100.0
 !            grad = 100.0 ! density gradient (larger = more gradual
             
-
+            v1_xuan = 0.0 !-0.8/40  !was 0.1*va
+            kx = PI/(nx*dx)
+            ky = PI/(ny*dy)
 
             do i=1,nx
                   do j=1,ny
@@ -325,12 +329,12 @@ module part_init
 !                  vp(l,1) = -0.0*(exp(-(xp(l,3)-qz(nz/2))**2/(10.*delz)**2)
 !               x        *exp(-(xp(l,1)-qx(nx/2))**2/(10.*dx)**2))+vx
                   vp(l,1) =  va_f*va*(tanh((qz(k)-qz(nz/2))/(Lo))) + vx + &
-                       0.1*va*cosh((qz(nz/2)-qz(k))/(2*Lo))**(-2)*tanh((qz(nz/2)-qz(k))/(2*Lo))*cos(qx(i)*2*PI/(nx*dx))*cos(qy(j)*2*PI/(ny*dy))
+                       (v1_xuan/(kx*Lo))*cosh((qz(k)-qz(nz/2))/(2*Lo))**(-2)*tanh((qz(k)-qz(nz/2))/(2*Lo))*cos((qx(i)-qx(nx/2))*kx)*cos((qy(j)-qy(ny/2))*ky)
 !vx!+57.0*exp(-(xp(l,3)-qz(nz/2))**2/(5*dz_grid(nz/2))**2) !Gaussian velocity perturbation (20)
                   vp(l,2) = vy! +57.0*(1+0.5*cos(8*pi*qx(ii)/qx(nx-1)))* &
                        !(1+0.5*cos(8*pi*qz(kk)/qz(nz)))* &
                        !exp(-((qx(ii)-qx(nx/2))**2 + (qz(kk)-qz(nz/2))**2)/(10*dx)**2)
-                  vp(l,3) = vz - 0.1*va*cosh((qz(nz/2)-qz(k))/(2*Lo))**(-2)*sin(2*PI*qx(i)/(nx*dx))*cos(qy(j)*2*PI/(ny*dy))
+                  vp(l,3) = vz - v1_xuan*cosh((qz(k)-qz(nz/2))/(2*Lo))**(-2)*sin((qx(i)-qx(nx/2))*kx)*cos((qy(j)-qy(ny/2))*ky)
                   
                   do m=1,3
                         vp1(l,m) = vp(l,m)
@@ -423,6 +427,73 @@ module part_init
       end subroutine init_KH_part
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      subroutine init_KH_heavy()
+        
+        use Var_Arrays
+        use inputs
+
+        integer(4):: N_1, N_2, N_3 !particle partitioning
+        real:: vth1, vth2, vth3    !Initialize for 3 species (Maxwellian populations)
+        real:: m1, m2, m3
+        real:: beta1, beta2, beta3          !macro scaling parameters
+        real:: N1, N2, N3    !actual number of particles
+        real:: d1, d2, d3    !actual number density
+        real:: rL1, rL2, rL3 !gyroradius
+
+!        n1 = 0.4
+!        n2 = 0.2
+!        n3 = 0.01
+        
+        N_1 = Ni_tot
+        N_2 = nint(2.0*Ni_tot)
+        Ni_tot = N_2
+        N_3 = nint(2.0*Ni_tot)
+        Ni_tot = N_3
+
+        N1 = real(N_1)
+        N2 = real(N_2) - real(N_1)
+        N3 = real(N_3) - real(N_2)
+
+        beta1 = 1.0 
+        beta2 = (N2/N1)/dens2
+        beta3 = (N3/N1)/dens3
+
+        write(*,*) 'beta...',beta1,beta2,beta3
+!        stop
+        
+        vth1 = vth
+        vth2 = vth
+        vth3 = vth
+
+        m1 = 1.0
+        m2 = 1.0
+!        m3 = m_pu
+        m3 = 16.0
+        
+!        vth1 = sqrt((m2/m1)*(N2/N1)*(beta1/beta2)*vth2*vth2 + (m3/m1)*(N3/N1)*(beta1/beta3)*vth3*vth3)
+        vth2 = sqrt((m1/m2)*(N1/N2)*(beta2/beta1)*vth1*vth1 - (m3/m2)*(N3/N2)*(beta2/beta3)*vth3*vth3)
+        vth3 = sqrt(-(m2/m3)*(N2/N3)*(beta3/beta2)*vth2*vth2 + (m1/m3)*(N1/N3)*(beta3/beta1)*vth1*vth1)
+
+        rL1 = m1*mion*vth1/(q*B0_init)  !gryoradius
+        rL2 = m2*mion*vth2/(q*B0_init)
+        rL3 = m3*mion*vth3/(q*B0_init)
+
+!        write(*,*) 'rL...',rL1,rL2,rL3,lambda_i
+!        stop
+        
+        write(*,*) 'vth...',vth1,vth2,vth3
+!        stop
+
+        call load_Maxwellian_KH(vth1,1,N_1,m1*mion,1/m1,beta1,rL1,1)
+        call load_Maxwellian_KH(vth2,N_1+1,N_2,m2*mion,1/m2,beta2,rL2,2)
+        call load_Maxwellian_KH(vth3,N_2+1,N_3,m3*mion,1/m3,beta3,rL3,2)
+        
+      end subroutine init_KH_heavy
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine load_ring_beam(vring,dNi,mass,mratio)
