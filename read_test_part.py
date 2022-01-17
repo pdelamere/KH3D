@@ -312,6 +312,7 @@ Nstep = 2100
 st = 1500    #starting time for mu normalization
 p = Hybrid_read(dir)
 p.read_para()
+p.read_coords()
 h = test_part(dir,Npart,Nstep)
 h.read_part()
     

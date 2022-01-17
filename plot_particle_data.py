@@ -4,6 +4,8 @@ import math
 import statsmodels.api as sm
 from scipy.stats import gmean
 
+#plt.rc('font', family='Helvetica')
+
 def get_gyro_average(h,x):
     print('w...',h.w)
     w2 = int(h.w/2)
@@ -52,7 +54,7 @@ def get_mu_bar(h,st,va,b0):  #vperp^2/B
     #plt.show()
     return vpar, vperp2
 
-def plot_6_panel(h):
+def plot_6_panel(h,p):
 
     b0 = 5e-9
     va= b0/np.sqrt(np.pi*4e-7*1.67e-27*0.4e6)/1e3
@@ -65,7 +67,8 @@ def plot_6_panel(h):
     t1 = 2000
     part0 = 1
     part1 = 2
-    tm = np.linspace(0,t1-t0,t1-t0)/(2*np.pi*10)
+#    tm = np.linspace(0,t1-t0,t1-t0)/(2*np.pi*10)
+    tm = np.linspace(t0,t1,(t1-t0))/(2*np.pi*10)
 
     ngyro = int(2*np.pi*10)  #number of time steps per gyroperiod
     
@@ -95,18 +98,21 @@ def plot_6_panel(h):
         Bx1 = dBx1[t0:t1,i]
         By1 = dBy1[t0:t1,i]
         Bz1 = dBz1[t0:t1,i]
+        Btot = h.By[t0:t1,i]
         
         S = -(Ex1*Bz1 - Ez1*Bx1)
 
         ax[0].plot(tm,S,'-')
         #ax[0].plot(tm,np.sqrt(Bx1**2 + Bz1**2)/(1.6e-19*b0/1.67e-27))
         ax[0].plot(tm,np.zeros(t1-t0))
-        ax[0].set(ylabel = 'S')
+        ax[0].set(ylabel = 'Poynting Flux')
+        ax[0].xaxis.set_ticklabels([])
         vkaw=(np.sqrt(Ex1**2 + Ez1**2)/np.sqrt(Bx1**2 + Bz1**2))/va
         ax[1].plot(tm,(np.sqrt(Ex1**2 + Ez1**2)/np.sqrt(Bx1**2 + Bz1**2))/va)
         ax[1].plot(tm,np.ones(t1-t0))
         ax[1].set(ylabel= '$(E_\perp/B_\perp)/v_A$')
         ax[1].set_ylim([0,20])
+        ax[1].xaxis.set_ticklabels([])
         #h.w=int(10)
         
 
@@ -118,28 +124,34 @@ def plot_6_panel(h):
         d2mu = muarr[2:] - 2*muarr[1:-1] + muarr[0:-2]
         dmu = muarr[2:] - muarr[0:-2]
         Jybar = get_gyro_average(h,h.Jy)
-        ax[2].plot(tm,h.mu[t0:t1,i])
+        ax[3].plot(tm,h.mu[t0:t1,i])
         #ax[2].plot(tm[::ngyro],h.mu[t0:t1:ngyro,i],'o')
-        ax[2].plot(tm[wh],muarr[wh],'o')
+        ax[3].plot(tm[wh],muarr[wh],'o')
         #ax[2].plot(tm[1:-1],abs(d2mu))
         #ax[2].plot(tm[::ngyro],h.mu[t0:t1:ngyro,i],'o')
         #ax[2].plot(tm[wh],d2mu[wh],'o')
         #ax[2].plot(tm,np.ones(t1-t0))
-        ax[2].set(ylabel='$\mu$')
-
+        ax[3].set(ylabel='$\mu$')
+        ax[3].xaxis.set_ticklabels([])
         #h.w=4
         vdotE1 = get_v_dot_E(h,Exave,Eyave,Ezave)
         #vdotE = get_v_dot_E(h,dEx1,dEy1,dEz1)
         vdotE = get_v_dot_E(h,h.Ex,h.Ey,h.Ez)
         vdotEbar = get_gyro_average(h,vdotE)
-        vdotE_sum = np.cumsum(vdotE[t0:t1,i])
+        vdotE_sum = np.cumsum(vdotEbar[t0:t1,i])
         vpar, vperp2 = get_mu_bar(h,st,va,b0)
         dvperp2 = (vperp2[1:,:]-vperp2[0:-1,:])
         #arr = sm.tsa.stattools.ccf(h.mu[t0:t1,i]/h.mu[st,i], vdotEbar[t0:t1,i])
+        ax[2].plot(tm,np.sqrt(Bx1**2 + Bz1**2)/0.479)
+        ax[2].plot(tm,np.ones(t1-t0)*0.05)
+
+        print(Btot)
         
-        ax[3].plot(tm,dvperp2[t0:t1,i])
-        ax[3].plot(tm,np.zeros(t1-t0))
-        ax[3].set(ylabel='$dv_\perp^2/dt$')
+#        ax[3].plot(tm,dvperp2[t0:t1,i])
+#        ax[3].plot(tm,np.zeros(t1-t0))
+#        ax[3].set(ylabel='$dv_\perp^2/dt$')
+        ax[2].set(ylabel='$\delta B_\perp/B_0$')
+        ax[2].xaxis.set_ticklabels([])
 
         #ax[4].plot(tm,vdotE[t0:t1,i])
         #ax[4].plot(tm,vdotE1[t0:t1,i])
@@ -153,15 +165,19 @@ def plot_6_panel(h):
         
         ax[4].plot(tm,np.zeros(t1-t0))
         ax[4].set(ylabel='$v \cdot E$')
-
+        ax[4].xaxis.set_ticklabels([])
         
 #        Exbar = h.Ex[t0:t1,i]-h.Ex[t0:t1,i].mean()
 #        Ezbar = h.Ez[t0:t1,i]-h.Ez[t0:t1,i].mean()
 
-        ax[5].plot(tm,myatan2(Ez1,Ex1)*180/np.pi,'.')
-        ax[5].plot(tm[wh],myatan2(Ez1[wh],Ex1[wh])*180/np.pi,'o')
-        #ax[5].plot(tm,myatan2(Bz1,Bx1)*180/np.pi,'.')
-        ax[5].set(ylabel='$atan(Ez/Ex)$')
+        ax[5].plot(tm,vdotE_sum/vdotE_sum.max())
+        ax[5].plot(tm,np.zeros(t1-t0))
+        ax[5].set(ylabel='$\Sigma v \cdot E$')
+
+#        ax[5].plot(tm,myatan2(Ez1,Ex1)*180/np.pi,'.')
+#        ax[5].plot(tm[wh],myatan2(Ez1[wh],Ex1[wh])*180/np.pi,'o')
+#        #ax[5].plot(tm,myatan2(Bz1,Bx1)*180/np.pi,'.')
+#        ax[5].set(ylabel='$atan(Ez/Ex)$')
         ax[5].set(xlabel='time ($2 \pi \Omega_i^{-1}$)')
         vxbar = h.vx[t0:t1,i]-h.vx[t0:t1,i].mean()
         vzbar = h.vz[t0:t1,i]-h.vz[t0:t1,i].mean()
@@ -176,25 +192,29 @@ def plot_6_panel(h):
         
 def plot_poincare(h,p):
 
+    import pylab
+    cm = pylab.get_cmap('gist_rainbow')
+    
     b0 = 5e-9
     va= b0/np.sqrt(np.pi*4e-7*1.67e-27*0.4e6)/1e3
     myatan2 = np.vectorize(math.atan2)
     #fig,ax = plt.subplots(1)
     h.w = int(2*np.pi*10)
-    st = 1000
+    st = 100
     t0 = 100
-    t1 = 3000
+    t1 = 1500
     part0 = 1
     part1 = 2
-    tm = np.linspace(0,t1-t0,t1-t0)/(2*np.pi*10)
-
+    #tm = np.linspace(0,t1-t0,t1-t0)/(2*np.pi*10)
+    tm = np.linspace(t0,t1,(t1-t0))/(2*np.pi*10)
+    
     ngyro = int(2*np.pi*10)  #number of time steps per gyroperiod
     
     vpar, vperp2 = get_mu_bar(h,st,va,b0)
     vdotE = get_v_dot_E(h,h.Ex,h.Ey,h.Ez)
     dmu = (h.mu[1:,:]-h.mu[0:-1,:])
     
-    for i in range(1,10):
+    for i in range(1,1000):
         if ((h.z[t0,i] > p.qz[40]) and (h.z[t0,i] < p.qz[int(p.nz-40)])): 
             h.w = int(2*np.pi*10)
             Ezave = get_gyro_average(h,h.Ez)
@@ -220,15 +240,16 @@ def plot_poincare(h,p):
             """
             phi = myatan2(Ez1,Ex1)*180/np.pi
             vzvx = myatan2(h.vz[t0:t1,i],h.vx[t0:t1,i])
-            wh = np.where(abs(vzvx[1:]-vzvx[0:-1]) > 1.5*np.pi)
+            wh = np.where(abs(vzvx[1:]-vzvx[0:-1]) > np.pi)
             muarr = h.mu[t0:t1,i]
             #clr = np.cos(np.linspace(0,2*np.pi,len(phi[::ngyro])))
-            plt.plot(phi[wh],muarr[wh],':o')
-            #plt.plot(tm[wh],muarr[wh],'.')
+            #plt.plot(phi[wh],muarr[wh],':o')
+            plt.plot(tm[wh],muarr[wh],'.',color=cm(1-1.*muarr[0]/0.4))
             #plt.plot(phi[::ngyro],h.mu[t0:t1:ngyro,i],':o')
             #plt.xlabel('$\phi ~(atan(E_z/E_x))$')
-            plt.xlabel('$\phi$')
-            plt.ylabel('$\mu$')
+            #plt.xlabel('$\phi$')
+            plt.xlabel('time ($2 \pi \Omega_i^{-1}$)',fontsize=14)
+            plt.ylabel('$\mu$',fontsize=14)
         
     plt.show()
 
@@ -242,6 +263,9 @@ def get_perp_par(h,x,y,z):
     return vecperp,vecpar    
     
 def plot_phase_space(h,p,Nstep):
+    b0 = 5e-9
+    va= b0/np.sqrt(np.pi*4e-7*1.67e-27*0.4e6)/1e3
+
     B = np.sqrt(h.Bx**2 + h.By**2 + h.Bz**2)
     wh = np.logical_and((h.z[Nstep-1,:] > p.qz[40]), (h.z[Nstep-1,:] < p.qz[int(p.nz-40)]))
     plt.figure(1)
@@ -254,10 +278,12 @@ def plot_phase_space(h,p,Nstep):
     v0 = np.linspace(0,np.max(bins),100)
     fv0 = v0*np.exp(-(v0)**2/(vth0)**2)
     fv0 = (np.max(hvperp0)/np.max(fv0))*fv0
-    plt.hist(vperp[100,wh],bins=20)
-    plt.plot(v0,fv0)
-    plt.xlabel('$v{_\perp} 0$')
-    plt.ylabel('f(v)')
+    plt.hist(vperp[100,wh]/va,bins=20)
+    plt.plot(v0/va,fv0)
+    plt.xlabel('$v_{0\perp}/v_A$',fontsize=14)
+    plt.ylabel('$v_\perp f(v_\perp)$',fontsize=14)
+    plt.xlim([0,3])
+
 
     plt.figure(2)   
     hvperp1, bins = np.histogram(vperp[2999,wh],bins=20)
@@ -270,12 +296,13 @@ def plot_phase_space(h,p,Nstep):
     v = np.linspace(0,np.max(bins),100)
     fv = v*np.exp(-(v)**2/(vth)**2)
     fv = (np.max(hvperp1)/np.max(fv))*fv
-    plt.plot(v,fv)
-    plt.plot(v0,fv0)
+    plt.plot(v/va,fv)
+    #plt.plot(v0,fv0)
     #plt.hist(vperp[h.Nstep-1,:],bins=40)
-    plt.hist(vperp[2999,wh],alpha=0.5,bins=20)
-    plt.xlabel('$v_\perp$')
-    plt.ylabel('f(v)')
+    plt.hist(vperp[2999,wh]/va,bins=20)
+    plt.xlabel('$v_\perp/v_A$',fontsize=14)
+    plt.ylabel('$v_\perp f(v_\perp)$',fontsize=14)
+    plt.xlim([0,3])
     plt.show()
     plt.plot(bins[0:],hvperp0-hvperp1)
     plt.xlabel('$v_\perp$')
@@ -319,7 +346,7 @@ def plot_dist(h,Nstep):
     plt.show()
 
 def plot_dmu_dvdotE(h,p):
-  
+
     h.w = int(62)  
     t0 = 500
     t1 = 2000
@@ -340,8 +367,9 @@ def plot_dmu_dvdotE(h,p):
     dmu = (h.mu[1:,:]-h.mu[0:-1,:])
     dvperp2 = (vperp2[1:,:]-vperp2[0:-1,:])
     #dvdotE = vdotEave[1:,:] - vdotEave[0:-1,:]
-    plt.plot(dmu[t0:t1,wh],vdotEave[t0:t1,wh],'.')
+    plt.plot(dmu[t0:t1,wh]/abs(dmu[t0:t1,wh]).max(),vdotEave[t0:t1,wh]/abs(vdotEave[t0:t1,wh]).max(),'.')
     plt.xlabel('$\delta \mu$')
+    plt.ylabel('$<v \cdot E>$')
     arr = sm.tsa.stattools.ccf(dmu[t0:t1,wh].flatten(), vdotEave[t0:t1,wh].flatten())
     print(arr[0])
     plt.show()

@@ -69,7 +69,8 @@ class test_part:
         return
 
 #---------------------------------------------------------------------------
-dir = '/data/KH3D/run_heating_beta_3/'
+dir = '/data/KH3D/run_heating/'
+#dir = '/data/KH3D/run_heating_beta_3/'
 Npart = 1000
 Nstep = 3000
 #st = 1000    #starting time for mu normalization
